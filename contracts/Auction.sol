@@ -39,6 +39,8 @@ contract Auction {
         emit HighestBidIncreased(highestBidder, highestBid);
     }
 
+    //can withdraw any time
+    // bug
     function withdraw() public returns (bool) {
         uint256 amount = pendingReturns[msg.sender];
         if (amount > 0) {
