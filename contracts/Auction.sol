@@ -21,8 +21,8 @@ contract Auction {
     //     auctionEndTime = block.timestamp + _biddingTime;
     // }
 
-    function startAuction(address _beneficiary, uint256 _biddingTime, uint256 _baseValue) public {
-        beneficiary = payable(_beneficiary);
+    function startAuction(uint256 _biddingTime, uint256 _baseValue) public {
+        beneficiary = payable(msg.sender);
         auctionEndTime = block.timestamp + _biddingTime;
         baseValue = _baseValue;
         ended = false;
