@@ -46,6 +46,12 @@ contract Auction {
             revert("AUC105: Auction haven't ended yet");
         }
         uint256 amount = pendingReturns[msg.sender];
+
+        //to prevent the highest bidder from withdrawing bidded money
+        if(msg.sender == highestBidder){
+            amount = amount - highestBid;
+        }
+
         if (amount > 0) {
             pendingReturns[msg.sender] = 0;
 
