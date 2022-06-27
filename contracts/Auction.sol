@@ -42,6 +42,9 @@ contract Auction {
     //can withdraw any time
     // bug
     function withdraw() public returns (bool) {
+        if(!ended){
+            revert("AUC105: Auction haven't ended yet");
+        }
         uint256 amount = pendingReturns[msg.sender];
         if (amount > 0) {
             pendingReturns[msg.sender] = 0;
