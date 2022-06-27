@@ -14,3 +14,42 @@ Possible fix:
     -- auction with id
     -- bid with id
     -- withdraw with id
+
+
+react-countdown:
+
+1. The <Countdown/> components renderer prop takes a component as input
+2. It passes the object to the component
+    {
+        total: 0,
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0,
+        completed: true,
+        api: { ... },
+        props: { ... },
+        formatted: { ... }
+    }
+3. The component can access the api calls accordingly
+
+To set time manually:
+In the parent component:
+- take the time as input
+- it will effect: date={Date.now() + input} of <Countdown/>
+- the time will be updated
+- then we can start the time from the renderer component
+- the timer will be updating in the renderer component
+- The display will be on the renderer component
+- When timer completed will call the callback function specfied on the onComplete prop
+
+
+
+
+
+Now to take input:
+- Want to use date picker
+- also there should be a way to set the time manually(minutes, seconds, hours)
+
+
