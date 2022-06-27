@@ -4,25 +4,37 @@ pragma solidity ^0.8.0;
 contract Auction {
     address payable public beneficiary;
     uint256 public auctionEndTime;
+    uint256 public baseValue;
 
     address public highestBidder;
     uint256 public highestBid;
 
     mapping(address => uint256) public pendingReturns;
 
-    bool ended = false;
+    bool ended;
 
     event HighestBidIncreased(address bidder, uint256 amount);
     event AuctionEnded(address winner, uint256 amount);
 
-    constructor(uint256 _biddingTime, address _beneficiary) {
+    // constructor(uint256 _biddingTime, address _beneficiary) {
+    //     beneficiary = payable(_beneficiary);
+    //     auctionEndTime = block.timestamp + _biddingTime;
+    // }
+
+    function startAuction(address _beneficiary, uint256 _biddingTime, uint256 _baseValue) public {
         beneficiary = payable(_beneficiary);
         auctionEndTime = block.timestamp + _biddingTime;
+        baseValue = _baseValue;
+        ended = false;
     }
 
     function bid() public payable {
         if (block.timestamp > auctionEndTime) {
             revert("AUC101: Auction has already ended");
+        }
+
+        if(msg.value <= baseValue){
+            revert("AUC106: Bid cannot be less than base value");
         }
 
         if (msg.value <= highestBid) {

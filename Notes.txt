@@ -1,2 +1,16 @@
 Q1: Is the bid reversible?
+: no
 Q2: When will the losing bidder retrieve his money?
+: after auction has ended
+
+
+The contract right now is not reusable
+single purpose
+
+Possible fix:
+ - Make ended(bool) reusable
+ - startAuction(address, time) function to start a new auction
+    -- But with this a single auction at a time possible
+    -- auction with id
+    -- bid with id
+    -- withdraw with id
