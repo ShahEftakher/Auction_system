@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Form, Input, DatePicker } from 'antd';
 import getBlockchain from './ethereum';
-import { CountdownCircleTimer } from 'react-countdown-circle-timer';
-import RenderTime from './Rendertime';
 import './style.css';
 
 function App() {
@@ -50,7 +48,6 @@ function App() {
   return (
     <div>
       <div className="d-flex align-items-center justify-content-center">
-       
         <div className="container">
           <div className="row justify-content-md-center p-4">
             <Form className="col-md-auto" onFinish={onFinish} form={form}>
@@ -73,6 +70,12 @@ function App() {
                 Submit
               </Button>
             </Form>
+
+            <div>
+              Current HighestBidder: {highestBidder}
+              <br />
+              Current HighestBid: {highestBid}
+            </div>
           </div>
         </div>
       </div>
