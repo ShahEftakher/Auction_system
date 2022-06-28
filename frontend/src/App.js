@@ -1,35 +1,37 @@
 import { useEffect, useState } from 'react';
-import { Button, Form, Input, DatePicker } from 'antd';
+import { Button, Form, Input, DatePicker, Space } from 'antd';
 import getBlockchain from './ethereum';
 import './style.css';
+import CountdownTimer from './components/CountdownTimer';
+import { toMiliseonds } from './utils/toMiliseconds';
+import { toSeconds } from './utils/toSecods';
 
 function App() {
   const [time, setTime] = useState(0);
+  const [timer, setTimer] = useState(0);
   const [signerAddress, setSignerAddress] = useState(undefined);
   const [auction, setAuction] = useState(undefined);
   const [highestBid, setHighestBid] = useState(undefined);
   const [highestBidder, setHighestBidder] = useState(undefined);
-  const [form] = Form.useForm();
+  const [form1] = Form.useForm();
+  const [form2] = Form.useForm();
 
-  // const onChange = (value, dateString) => {
-  //   console.log('Selected Time: ', value);
-  //   console.log('Formatted Selected Time: ', dateString);
-  // };
-
-  // const onOk = (value) => {
-  //   console.log('onOk: ', value);
-  // };
+  const onChange = (value, dateString) => {
+    console.log('Selected Time: ', value);
+    setTime(dateString);
+  };
 
   const onFinish = async (values) => {
-    // const toMs = values.time * 1000;
-    console.log(values.time, values.price);
-    // await auction.startAuction(values.time, values.price);
-    setTime(values.time);
-    form.resetFields();
+    console.log(values.price, values);
+    console.log(toSeconds(time));
+    await auction.startAuction(toSeconds(time), values.price);
+    setTimer(toMiliseonds(time));
+    form1.resetFields();
   };
 
   const bid = async (value) => {
     await auction.bid(value.price);
+    form2.resetFields();
   };
 
   useEffect(() => {
@@ -37,6 +39,7 @@ function App() {
       const { signerAddress, auction } = await getBlockchain();
       setSignerAddress(signerAddress);
       setAuction(auction);
+
       const HighestBid = await auction.highestBid();
       const HighestBidder = await auction.highestBidder();
       setHighestBid(HighestBid);
@@ -50,9 +53,15 @@ function App() {
       <div className="d-flex align-items-center justify-content-center">
         <div className="container">
           <div className="row justify-content-md-center p-4">
-            <Form className="col-md-auto" onFinish={onFinish} form={form}>
+            <Form className="col-md-auto" onFinish={onFinish} form={form1}>
               <Form.Item label="Time" name="time">
-                <Input />
+                <Space direction="vertical" size={12}>
+                  <DatePicker
+                    showTime={true}
+                    format={'MM-DD-YYYY HH:mm:ss'}
+                    onChange={onChange}
+                  />
+                </Space>
               </Form.Item>
               <Form.Item label="Price" name="price">
                 <Input />
@@ -62,7 +71,7 @@ function App() {
               </Button>
             </Form>
 
-            <Form className="col-md-auto" onFinish={bid}>
+            <Form className="col-md-auto" onFinish={bid} form={form2}>
               <Form.Item label="Bid" name="price">
                 <Input />
               </Form.Item>
@@ -70,6 +79,8 @@ function App() {
                 Submit
               </Button>
             </Form>
+
+            <CountdownTimer targetDate={timer} />
 
             <div>
               Current HighestBidder: {highestBidder}
