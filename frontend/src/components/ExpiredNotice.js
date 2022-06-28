@@ -1,11 +1,16 @@
-const ExpiredNotice = () => {
-    return (
-      <div className="expired-notice">
-        <span>Expired!!!</span>
-        <p>Please select a future date and time.</p>
-      </div>
-    );
+import { Button } from 'antd';
+
+const ExpiredNotice = ({auction}) => {
+  const handleEnd = async () => {
+    await auction.auctionEnd();
   };
-  
-  export default ExpiredNotice;
-  
+  return (
+    <div className="expired-notice">
+      <span>Auction ended!!!</span>
+      <p>Please select a future date and time.</p>
+      <Button onClick={handleEnd}>End Auction</Button>
+    </div>
+  );
+};
+
+export default ExpiredNotice;

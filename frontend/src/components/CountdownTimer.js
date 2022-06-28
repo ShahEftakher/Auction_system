@@ -5,14 +5,14 @@ import ExpiredNotice from './ExpiredNotice';
 
 const CountdownTimer = ({ targetDate, callBack }) => {
   const [days, hours, minutes, seconds] = useCountdown(targetDate);
-  async function onFinish() {
-    await callBack.auctionEnd();
-  }
+  //   async function onFinish() {
+  //     await callBack.auctionEnd();
+  //   }
   if (days + hours + minutes + seconds === 0) {
-    onFinish();
-    return <ExpiredNotice />;
+    // onFinish();
+    return <ExpiredNotice auction={callBack} />;
   } else if (days + hours + minutes + seconds < 0) {
-    return <ExpiredNotice />;
+    return <ExpiredNotice auction={callBack} />;
   } else {
     return (
       <ShowCounter

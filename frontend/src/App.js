@@ -6,6 +6,7 @@ import './style.css';
 import CountdownTimer from './components/CountdownTimer';
 import { toMiliseonds } from './utils/toMiliseconds';
 import { toSeconds } from './utils/toSecods';
+import { ethers } from 'ethers';
 
 function App() {
   const [time, setTime] = useState(0);
@@ -26,18 +27,33 @@ function App() {
   const onFinish = async (values) => {
     console.log(values.price, values);
     console.log(toSeconds(time));
-    await auction.startAuction(toSeconds(time), values.price);
-    setTimer(toMiliseonds(time));
+    const tx = await auction.startAuction(
+      toSeconds(time),
+      ethers.utils.parseEther(values.price)
+    );
+    await tx.wait();
+    const contractTimer = await auction.getRemainingTime();
+    console.log(contractTimer);
+    setTimer(contractTimer * 1000);
     form1.resetFields();
   };
 
   const bid = async (value) => {
     console.log(value.bid);
-    await auction.bid({ value: value.bid });
+    const tx = await auction.bid({ value: ethers.utils.parseEther(value.bid) });
+    await tx.wait();
     form2.resetFields();
   };
 
+  const withdrawHandler = async () => {
+    const tx = await auction.withdraw();
+    await tx.wait();
+  };
+
   useEffect(() => {
+    window.ethereum.on('accountsChanged', () => {
+      window.location.reload();
+    });
     const init = async () => {
       const { signerAddress, auction } = await getBlockchain();
       setSignerAddress(signerAddress);
@@ -46,9 +62,12 @@ function App() {
       const HighestBid = await auction.highestBid();
       const HighestBidder = await auction.highestBidder();
       const BaseValue = await auction.baseValue();
+      const Timer = await auction.getRemainingTime();
+      console.log(Timer);
       setHighestBid(Number(HighestBid));
       setHighestBidder(HighestBidder);
       setBaseValue(Number(BaseValue));
+      setTimer(Timer * 1000);
     };
     init();
   }, []);
@@ -93,6 +112,10 @@ function App() {
               Current HighestBid: {highestBid}
               <br />
               Base Value: {baseValue}
+            </div>
+
+            <div>
+              <Button onClick={withdrawHandler}>Withdraw Bid</Button>
             </div>
           </div>
         </div>
