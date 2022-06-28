@@ -1,13 +1,1 @@
- <div className="timer-wrapper">
-          <CountdownCircleTimer
-            isPlaying
-            duration={time}
-            colors={['#004777', '#F7B801', '#A30000', '#A30000']}
-            colorsTime={[10, 6, 3, 0]}
-            onComplete={() => {
-              console.log('ENDED');
-            }}
-          >
-            {RenderTime}
-          </CountdownCircleTimer>
-        </div>
+Auction contract address: 0x5FbDB2315678afecb367f032d93F642f64180aa3

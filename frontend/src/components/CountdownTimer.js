@@ -1,12 +1,15 @@
-import React from "react";
-import { useCountdown } from "../hooks/useCountdown";
-import ShowCounter from "./ShowCounter";
-import ExpiredNotice from "./ExpiredNotice";
+import React from 'react';
+import { useCountdown } from '../hooks/useCountdown';
+import ShowCounter from './ShowCounter';
+import ExpiredNotice from './ExpiredNotice';
 
-const CountdownTimer = ({ targetDate, callBack}) => {
+const CountdownTimer = ({ targetDate, callBack }) => {
   const [days, hours, minutes, seconds] = useCountdown(targetDate);
+  async function onFinish() {
+    await callBack.auctionEnd();
+  }
   if (days + hours + minutes + seconds === 0) {
-    callBack();
+    onFinish();
     return <ExpiredNotice />;
   } else if (days + hours + minutes + seconds < 0) {
     return <ExpiredNotice />;

@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useEffect, useState } from 'react';
 import { Button, Form, Input, DatePicker, Space } from 'antd';
 import getBlockchain from './ethereum';
@@ -13,6 +14,7 @@ function App() {
   const [auction, setAuction] = useState(undefined);
   const [highestBid, setHighestBid] = useState(undefined);
   const [highestBidder, setHighestBidder] = useState(undefined);
+  const [baseValue, setBaseValue] = useState(undefined);
   const [form1] = Form.useForm();
   const [form2] = Form.useForm();
 
@@ -30,7 +32,8 @@ function App() {
   };
 
   const bid = async (value) => {
-    await auction.bid(value.price);
+    console.log(value.bid);
+    await auction.bid({ value: value.bid });
     form2.resetFields();
   };
 
@@ -42,8 +45,10 @@ function App() {
 
       const HighestBid = await auction.highestBid();
       const HighestBidder = await auction.highestBidder();
-      setHighestBid(HighestBid);
+      const BaseValue = await auction.baseValue();
+      setHighestBid(Number(HighestBid));
       setHighestBidder(HighestBidder);
+      setBaseValue(Number(BaseValue));
     };
     init();
   }, []);
@@ -72,7 +77,7 @@ function App() {
             </Form>
 
             <Form className="col-md-auto" onFinish={bid} form={form2}>
-              <Form.Item label="Bid" name="price">
+              <Form.Item label="Bid" name="bid">
                 <Input />
               </Form.Item>
               <Button type="primary" htmlType="submit">
@@ -80,12 +85,14 @@ function App() {
               </Button>
             </Form>
 
-            <CountdownTimer targetDate={timer} />
+            <CountdownTimer targetDate={timer} callBack={auction} />
 
             <div>
               Current HighestBidder: {highestBidder}
               <br />
               Current HighestBid: {highestBid}
+              <br />
+              Base Value: {baseValue}
             </div>
           </div>
         </div>
