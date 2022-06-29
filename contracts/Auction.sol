@@ -4,67 +4,73 @@ pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 
 contract Auction {
-    address payable public beneficiary;
-    uint256 public auctionEndTime = 0;
-    uint256 public baseValue;
+    mapping(uint256 => address payable) public beneficiaries;
+    mapping(uint256 => uint256) public auctionEndTimes;
+    mapping(uint256 => uint256) public baseValues;
 
-    address public highestBidder;
-    uint256 public highestBid;
+    mapping(uint256 => address) public highestBidders;
+    mapping(uint256 => uint256) public highestBids;
 
-    mapping(address => uint256) public pendingReturns;
+    mapping(uint256 => mapping(address => uint256)) public pendingBidderReturns;
 
     bool ended;
+    mapping(uint256 => bool) public auctionEnded;
 
     event HighestBidIncreased(address bidder, uint256 amount);
     event AuctionEnded(address winner, uint256 amount);
     event AuctionStarted(uint256 startTime);
     event BeneficiaryPaid(address beneficiary, uint256 amount);
 
-    function startAuction(uint256 _biddingTime, uint256 _baseValue) public {
-        beneficiary = payable(msg.sender);
-        auctionEndTime = block.timestamp + _biddingTime;
-        baseValue = _baseValue;
-        ended = false;
-        highestBid = 0;
-        highestBidder = address(0);
-        emit AuctionStarted(auctionEndTime);
+    function startAuction(
+        uint256 _biddingTime,
+        uint256 _baseValue,
+        uint256 _id
+    ) public {
+        beneficiaries[_id] = payable(msg.sender);
+        auctionEndTimes[_id] = _biddingTime;
+        baseValues[_id] = _baseValue;
+        auctionEnded[_id] = false;
+        highestBids[_id] = 0;
+        highestBidders[_id] = address(0);
+
+        emit AuctionStarted(auctionEndTimes[_id]);
     }
 
-    function bid() public payable {
-        if (block.timestamp > auctionEndTime) {
+    function bid(uint256 _id) public payable {
+        if (block.timestamp > auctionEndTimes[_id]) {
             revert("AUC101: Auction has already ended");
         }
 
-        if (msg.value <= baseValue) {
+        if (msg.value <= baseValues[_id]) {
             revert("AUC106: Bid cannot be less than base value");
         }
 
-        if (msg.value <= highestBid) {
+        if (msg.value <= highestBids[_id]) {
             revert("AUC102: These already a higher or equal bid");
         }
 
         //Flaw is that all the amount will be stored in here
         if (msg.value != 0) {
-            pendingReturns[msg.sender] += msg.value;
+            pendingBidderReturns[_id][msg.sender] += msg.value;
         }
 
-        highestBidder = msg.sender;
-        highestBid = msg.value;
-        emit HighestBidIncreased(highestBidder, highestBid);
+        highestBidders[_id] = msg.sender;
+        highestBids[_id] = msg.value;
+        emit HighestBidIncreased(highestBidders[_id], highestBids[_id]);
     }
 
     //can withdraw any time
     // bug
-    function withdraw() public returns (bool) {
-        if (!ended) {
+    function withdraw(uint _id) public returns (bool) {
+        if (!auctionEnded[_id]) {
             revert("AUC105: Auction haven't ended yet");
         }
-        uint256 amount = pendingReturns[msg.sender];
+        uint256 amount = pendingBidderReturns[_id][msg.sender];
         console.log(amount);
 
         //to prevent the highest bidder from withdrawing bidded money
-        if (msg.sender == highestBidder) {
-            amount = amount - highestBid;
+        if (msg.sender == highestBidders[_id]) {
+            amount = amount - highestBids[_id];
         }
 
         if (amount == 0) {
@@ -72,32 +78,32 @@ contract Auction {
         }
 
         if (amount > 0) {
-            pendingReturns[msg.sender] = 0;
+            pendingBidderReturns[_id][msg.sender] = 0;
 
             if (!payable(msg.sender).send(amount)) {
-                pendingReturns[msg.sender] = amount;
+                pendingBidderReturns[_id][msg.sender] = amount;
                 return false;
             }
         }
         return true;
     }
 
-    function auctionEnd() public {
-        if (block.timestamp < auctionEndTime) {
+    function auctionEnd(uint256 _id) public {
+        if (block.timestamp < auctionEndTimes[_id]) {
             revert("AUC103: Auction has not ended yet");
         }
 
-        if (ended) {
+        if (auctionEnded[_id]) {
             revert("AUC104: The function has already been called");
         }
 
-        ended = true;
-        emit AuctionEnded(highestBidder, highestBid);
+        auctionEnded[_id] = true;
+        emit AuctionEnded(highestBidders[_id], highestBids[_id]);
 
-        if (beneficiary.send(highestBid)) {
-            emit BeneficiaryPaid(beneficiary, highestBid);
+        if (beneficiaries[_id].send(highestBids[_id])) {
+            emit BeneficiaryPaid(beneficiaries[_id], highestBids[_id]);
         } else {
-            pendingReturns[beneficiary] += highestBid;
+            pendingBidderReturns[_id][beneficiaries[_id]] += highestBids[_id];
         }
     }
 }
