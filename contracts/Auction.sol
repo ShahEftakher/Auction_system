@@ -1,28 +1,42 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
+import "hardhat/console.sol";
+
 contract Auction {
     address payable public beneficiary;
-    uint256 public auctionEndTime;
+    uint256 public auctionEndTime = 0;
+    uint256 public baseValue;
 
     address public highestBidder;
     uint256 public highestBid;
 
     mapping(address => uint256) public pendingReturns;
 
-    bool ended = false;
+    bool ended;
 
     event HighestBidIncreased(address bidder, uint256 amount);
     event AuctionEnded(address winner, uint256 amount);
+    event AuctionStarted(uint256 startTime);
+    event BeneficiaryPaid(address beneficiary, uint256 amount);
 
-    constructor(uint256 _biddingTime, address _beneficiary) {
-        beneficiary = payable(_beneficiary);
+    function startAuction(uint256 _biddingTime, uint256 _baseValue) public {
+        beneficiary = payable(msg.sender);
         auctionEndTime = block.timestamp + _biddingTime;
+        baseValue = _baseValue;
+        ended = false;
+        highestBid = 0;
+        highestBidder = address(0);
+        emit AuctionStarted(auctionEndTime);
     }
 
     function bid() public payable {
         if (block.timestamp > auctionEndTime) {
             revert("AUC101: Auction has already ended");
+        }
+
+        if (msg.value <= baseValue) {
+            revert("AUC106: Bid cannot be less than base value");
         }
 
         if (msg.value <= highestBid) {
@@ -42,7 +56,21 @@ contract Auction {
     //can withdraw any time
     // bug
     function withdraw() public returns (bool) {
+        if (!ended) {
+            revert("AUC105: Auction haven't ended yet");
+        }
         uint256 amount = pendingReturns[msg.sender];
+        console.log(amount);
+
+        //to prevent the highest bidder from withdrawing bidded money
+        if (msg.sender == highestBidder) {
+            amount = amount - highestBid;
+        }
+
+        if (amount == 0) {
+            revert("AUC107: You have no pending returns");
+        }
+
         if (amount > 0) {
             pendingReturns[msg.sender] = 0;
 
@@ -55,17 +83,21 @@ contract Auction {
     }
 
     function auctionEnd() public {
-        if(block.timestamp < auctionEndTime){
+        if (block.timestamp < auctionEndTime) {
             revert("AUC103: Auction has not ended yet");
         }
 
-        if(ended){
+        if (ended) {
             revert("AUC104: The function has already been called");
         }
 
         ended = true;
         emit AuctionEnded(highestBidder, highestBid);
 
-        beneficiary.transfer(highestBid);
+        if (beneficiary.send(highestBid)) {
+            emit BeneficiaryPaid(beneficiary, highestBid);
+        } else {
+            pendingReturns[beneficiary] += highestBid;
+        }
     }
 }
