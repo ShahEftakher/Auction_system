@@ -17,15 +17,19 @@ contract Auction {
 
     event HighestBidIncreased(address bidder, uint256 amount);
     event AuctionEnded(address winner, uint256 amount);
+    event AuctionStarted(uint256 startTime);
+    event BeneficiaryPaid(address beneficiary, uint256 amount);
 
     function startAuction(uint256 _biddingTime, uint256 _baseValue) public {
+        console.log(_biddingTime);
+        console.log(block.timestamp);
         beneficiary = payable(msg.sender);
         auctionEndTime = block.timestamp + _biddingTime;
         baseValue = _baseValue;
         ended = false;
         highestBid = 0;
         highestBidder = address(0);
-        console.log(auctionEndTime);
+        emit AuctionStarted(auctionEndTime);
     }
 
     function bid() public payable {
@@ -58,13 +62,14 @@ contract Auction {
             revert("AUC105: Auction haven't ended yet");
         }
         uint256 amount = pendingReturns[msg.sender];
+        console.log(amount);
 
         //to prevent the highest bidder from withdrawing bidded money
         if (msg.sender == highestBidder) {
             amount = amount - highestBid;
         }
 
-        if(amount == 0) {
+        if (amount == 0) {
             revert("AUC107: You have no pending returns");
         }
 
@@ -91,13 +96,15 @@ contract Auction {
         ended = true;
         emit AuctionEnded(highestBidder, highestBid);
 
-        beneficiary.transfer(highestBid);
+        if (beneficiary.send(highestBid)) {
+            emit BeneficiaryPaid(beneficiary, highestBid);
+        } else {
+            pendingReturns[beneficiary] += highestBid;
+        }
     }
 
-    function getRemainingTime() public view returns (uint256) {
-        if(auctionEndTime == 0) {
-            return 0;
-        }
-        return auctionEndTime - block.timestamp;
+    function blockTime() public view returns (uint256) {
+        return block.timestamp;
     }
+
 }

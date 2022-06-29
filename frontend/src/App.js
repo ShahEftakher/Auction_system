@@ -5,7 +5,6 @@ import getBlockchain from './ethereum';
 import './style.css';
 import CountdownTimer from './components/CountdownTimer';
 import { toMiliseonds } from './utils/toMiliseconds';
-import { toSeconds } from './utils/toSecods';
 import { ethers } from 'ethers';
 
 function App() {
@@ -16,6 +15,8 @@ function App() {
   const [highestBid, setHighestBid] = useState(undefined);
   const [highestBidder, setHighestBidder] = useState(undefined);
   const [baseValue, setBaseValue] = useState(undefined);
+  const [owner, setOwner] = useState(undefined);
+  const [signerBid, setSignerBid] = useState(undefined);
   const [form1] = Form.useForm();
   const [form2] = Form.useForm();
 
@@ -25,16 +26,17 @@ function App() {
   };
 
   const onFinish = async (values) => {
-    console.log(values.price, values);
-    console.log(toSeconds(time));
+    const remaining = Math.ceil((toMiliseonds(time) - Date.now()) / 1000);
+    console.log(remaining);
     const tx = await auction.startAuction(
-      toSeconds(time),
+      remaining,
       ethers.utils.parseEther(values.price)
     );
     await tx.wait();
-    const contractTimer = await auction.getRemainingTime();
-    console.log(contractTimer);
-    setTimer(contractTimer * 1000);
+
+    const endTime = await auction.auctionEndTime();
+    console.log('Auction End time(ms): ' + endTime * 1000);
+    setTimer(endTime * 1000);
     form1.resetFields();
   };
 
@@ -52,6 +54,7 @@ function App() {
 
   useEffect(() => {
     window.ethereum.on('accountsChanged', () => {
+      setSignerAddress(signerAddress);
       window.location.reload();
     });
     const init = async () => {
@@ -62,61 +65,78 @@ function App() {
       const HighestBid = await auction.highestBid();
       const HighestBidder = await auction.highestBidder();
       const BaseValue = await auction.baseValue();
-      const Timer = await auction.getRemainingTime();
-      console.log(Timer);
+      const endTime = await auction.auctionEndTime();
+      const Owner = await auction.beneficiary();
+      const SignerBid = await auction.pendingReturns(signerAddress);
+
       setHighestBid(Number(HighestBid));
       setHighestBidder(HighestBidder);
       setBaseValue(Number(BaseValue));
-      setTimer(Timer * 1000);
+      setSignerBid(Number(SignerBid));
+      setOwner(Owner);
+      setTimer(endTime * 1000);
     };
     init();
   }, []);
 
   return (
-    <div>
-      <div className="d-flex align-items-center justify-content-center">
-        <div className="container">
-          <div className="row justify-content-md-center p-4">
-            <Form className="col-md-auto" onFinish={onFinish} form={form1}>
-              <Form.Item label="Time" name="time">
-                <Space direction="vertical" size={12}>
-                  <DatePicker
-                    showTime={true}
-                    format={'MM-DD-YYYY HH:mm:ss'}
-                    onChange={onChange}
-                  />
-                </Space>
-              </Form.Item>
-              <Form.Item label="Price" name="price">
-                <Input />
-              </Form.Item>
-              <Button type="primary" htmlType="submit">
-                Submit
-              </Button>
-            </Form>
+    <div className="d-flex align-items-center justify-content-center">
+      <div className="container">
+        <div className="row justify-content-md-center p-4">
+          <Form className="col-md-auto" onFinish={onFinish} form={form1}>
+            <Form.Item label="Time" name="time">
+              <Space direction="vertical" size={12}>
+                <DatePicker
+                  showTime={true}
+                  format={'MM-DD-YYYY HH:mm:ss'}
+                  onChange={onChange}
+                />
+              </Space>
+            </Form.Item>
+            <Form.Item label="Price" name="price">
+              <Input />
+            </Form.Item>
+            <Button type="primary" htmlType="submit">
+              Submit
+            </Button>
+          </Form>
 
-            <Form className="col-md-auto" onFinish={bid} form={form2}>
-              <Form.Item label="Bid" name="bid">
-                <Input />
-              </Form.Item>
-              <Button type="primary" htmlType="submit">
-                Submit
-              </Button>
-            </Form>
+          <Form className="col-md-auto" onFinish={bid} form={form2}>
+            <Form.Item label="Bid" name="bid">
+              <Input />
+            </Form.Item>
+            <Button type="primary" htmlType="submit">
+              Submit
+            </Button>
+          </Form>
 
-            <CountdownTimer targetDate={timer} callBack={auction} />
+          <CountdownTimer
+            targetDate={timer}
+            callBack={auction}
+            signerAddress={owner}
+          />
+        </div>
+        <div className="row justify-content-md-center p-1">
+          <div className="col-md-auto">
+            <strong>Owner: {owner}</strong>
+          </div>
+          <br />
+        </div>
+        <div className="row justify-content-md-center p-1">
+          <div className="col-md-auto">
+            <h2 className="text-center">Signer info</h2>
+            <p>Signer: {signerAddress}</p>
+            <p>Signer bid: {signerBid}</p>
+          </div>
+          <br />
+          <ul>
+            <li>Current HighestBidder: {highestBidder}</li>
+            <li>Current HighestBid: {highestBid}</li>
+            <li>Base Value: {baseValue}</li>
+          </ul>
 
-            <div>
-              Current HighestBidder: {highestBidder}
-              <br />
-              Current HighestBid: {highestBid}
-              <br />
-              Base Value: {baseValue}
-            </div>
-
-            <div>
-              <Button onClick={withdrawHandler}>Withdraw Bid</Button>
-            </div>
+          <div>
+            <Button onClick={withdrawHandler}>Withdraw Bid</Button>
           </div>
         </div>
       </div>
