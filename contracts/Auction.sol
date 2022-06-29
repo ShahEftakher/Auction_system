@@ -21,8 +21,6 @@ contract Auction {
     event BeneficiaryPaid(address beneficiary, uint256 amount);
 
     function startAuction(uint256 _biddingTime, uint256 _baseValue) public {
-        console.log(_biddingTime);
-        console.log(block.timestamp);
         beneficiary = payable(msg.sender);
         auctionEndTime = block.timestamp + _biddingTime;
         baseValue = _baseValue;
@@ -102,9 +100,4 @@ contract Auction {
             pendingReturns[beneficiary] += highestBid;
         }
     }
-
-    function blockTime() public view returns (uint256) {
-        return block.timestamp;
-    }
-
 }
