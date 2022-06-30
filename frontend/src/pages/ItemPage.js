@@ -33,6 +33,11 @@ function Itempage() {
       setSignerAddress(signerAddress);
       window.location.reload();
     });
+    window.ethereum.on('chainChanged', () => {
+      setSignerAddress(signerAddress);
+      window.location.reload();
+    });
+
     const init = async () => {
       const { signerAddress, auction } = await getBlockchain();
       setSignerAddress(signerAddress);
@@ -62,7 +67,7 @@ function Itempage() {
             <Input />
           </Form.Item>
           <Button type="primary" htmlType="submit">
-            Submit
+            Bid
           </Button>
         </Form>
         <div className="row justify-content-md-center p-1">
@@ -85,7 +90,7 @@ function Itempage() {
           </ul>
 
           <div>
-            <Button onClick={withdrawHandler}>Withdraw Bid</Button>
+            <Button onClick={withdrawHandler}>Withdraw</Button>
           </div>
         </div>
       </div>

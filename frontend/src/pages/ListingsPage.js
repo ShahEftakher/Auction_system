@@ -37,6 +37,11 @@ const Listings = () => {
       setSignerAddress(signerAddress);
       window.location.reload();
     });
+
+    window.ethereum.on('chainChanged', () => {
+      setSignerAddress(signerAddress);
+      window.location.reload();
+    });
     const init = async () => {
       const { signerAddress, auction } = await getBlockchain();
       setSignerAddress(signerAddress);
@@ -50,28 +55,32 @@ const Listings = () => {
   return (
     <div>
       <h1>Listings</h1>
-      <h3>Create Listing</h3>
-      <Form className="col-md-auto" onFinish={onFinish} form={form1}>
-        <Form.Item label="Time" name="time">
-          <Space direction="vertical" size={12}>
-            <DatePicker
-              showTime={true}
-              format={'MM-DD-YYYY HH:mm:ss'}
-              onChange={onChange}
-            />
-          </Space>
-        </Form.Item>
-        <Form.Item label="Price" name="price">
-          <Input />
-        </Form.Item>
-        <Button type="primary" htmlType="submit">
-          Submit
-        </Button>
-      </Form>
+      <h3 className="text-center">Create Listing</h3>
       <div className="container">
-        <div className="row row-cols-auto">
+        <div className="row justify-content-md-center mb-4">
+          <Form className="col-md-auto" onFinish={onFinish} form={form1}>
+            <Form.Item label="Time" name="time">
+              <Space direction="vertical" size={12}>
+                <DatePicker
+                  showTime={true}
+                  format={'MM-DD-YYYY HH:mm:ss'}
+                  onChange={onChange}
+                />
+              </Space>
+            </Form.Item>
+            <Form.Item label="Price" name="price">
+              <Input />
+            </Form.Item>
+            <Button type="primary" htmlType="submit">
+              Start Auction
+            </Button>
+          </Form>
+        </div>
+      </div>
+      <div className="container-lg mb-4">
+        <div className="row row-cols-auto mb-4">
           {items.map((item) => (
-            <ItemCard key={item.id} item={item} classname={'col'} />
+            <ItemCard key={item.id} item={item} />
           ))}
         </div>
       </div>
