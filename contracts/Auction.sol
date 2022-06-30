@@ -5,6 +5,7 @@ import "hardhat/console.sol";
 
 contract Auction {
     struct Listing {
+        uint256 id;
         address payable beneficiary;
         uint256 auctionEndTime;
         uint256 baseValue;
@@ -22,8 +23,10 @@ contract Auction {
     event BeneficiaryPaid(address beneficiary, uint256 amount);
 
     function startAuction(uint256 _biddingTime, uint256 _baseValue) public {
+        uint256 _id = listings.length;
         listings.push(
             Listing(
+                _id,
                 payable(msg.sender),
                 block.timestamp + _biddingTime,
                 _baseValue,
@@ -32,12 +35,7 @@ contract Auction {
                 false
             )
         );
-        uint id = listings.length - 1;
-        emit AuctionStarted(listings[id].auctionEndTime);
-    }
-
-    function getlistings() public view returns (Listing[] memory) {
-        return listings;
+        emit AuctionStarted(listings[_id].auctionEndTime);
     }
 
     function bid(uint256 _id) public payable {
@@ -62,11 +60,10 @@ contract Auction {
 
         listings[_id].highestBidder = msg.sender;
         listings[_id].highestBid = msg.value;
-        emit HighestBidIncreased(listings[_id].highestBidder, listings[_id].highestBid);
-    }
-
-    function getlisting(uint256 _id) public view returns (Listing memory) {
-        return listings[_id];
+        emit HighestBidIncreased(
+            listings[_id].highestBidder,
+            listings[_id].highestBid
+        );
     }
 
     function auctionEnd(uint256 _id) public {
@@ -79,7 +76,10 @@ contract Auction {
         }
 
         listings[_id].ended = true;
-        emit AuctionEnded(listings[_id].highestBidder, listings[_id].highestBid);
+        emit AuctionEnded(
+            listings[_id].highestBidder,
+            listings[_id].highestBid
+        );
         uint256 transferAmount = listings[_id].highestBid;
         address payable beneficiary = listings[_id].beneficiary;
 
@@ -117,5 +117,13 @@ contract Auction {
             }
         }
         return true;
+    }
+
+    function getListings() public view returns (Listing[] memory) {
+        return listings;
+    }
+
+    function getItem(uint256 _id) public view returns (Listing memory) {
+        return listings[_id];
     }
 }

@@ -3,11 +3,11 @@ import { useCountdown } from '../hooks/useCountdown';
 import ShowCounter from './ShowCounter';
 import ExpiredNotice from './ExpiredNotice';
 
-const CountdownTimer = ({ targetDate, callBack, owner }) => {
+const CountdownTimer = ({ targetDate, auction, owner, id }) => {
   const [days, hours, minutes, seconds] = useCountdown(targetDate);
   async function onFinish() {
     console.log(owner);
-    const tx = await callBack.auctionEnd({ from: owner });
+    const tx = await auction.auctionEnd(id, { from: owner });
     tx.wait();
     console.log('Auction ended!!!');
   }
