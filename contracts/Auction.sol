@@ -4,16 +4,17 @@ pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 
 contract Auction {
-    address payable public beneficiary;
-    uint256 public auctionEndTime = 0;
-    uint256 public baseValue;
+    struct Listing {
+        address payable beneficiary;
+        uint256 auctionEndTime;
+        uint256 baseValue;
+        address highestBidder;
+        uint256 highestBid;
+        bool ended;
+    }
 
-    address public highestBidder;
-    uint256 public highestBid;
-
-    mapping(address => uint256) public pendingReturns;
-
-    bool ended;
+    Listing[] public listings;
+    mapping(uint256 => mapping(address => uint256)) public pendingReturns;
 
     event HighestBidIncreased(address bidder, uint256 amount);
     event AuctionEnded(address winner, uint256 amount);
@@ -21,46 +22,82 @@ contract Auction {
     event BeneficiaryPaid(address beneficiary, uint256 amount);
 
     function startAuction(uint256 _biddingTime, uint256 _baseValue) public {
-        beneficiary = payable(msg.sender);
-        auctionEndTime = block.timestamp + _biddingTime;
-        baseValue = _baseValue;
-        ended = false;
-        highestBid = 0;
-        highestBidder = address(0);
-        emit AuctionStarted(auctionEndTime);
+        listings.push(
+            Listing(
+                payable(msg.sender),
+                block.timestamp + _biddingTime,
+                _baseValue,
+                address(0),
+                0,
+                false
+            )
+        );
+        uint id = listings.length - 1;
+        emit AuctionStarted(listings[id].auctionEndTime);
     }
 
-    function bid() public payable {
-        if (block.timestamp > auctionEndTime) {
+    function getlistings() public view returns (Listing[] memory) {
+        return listings;
+    }
+
+    function bid(uint256 _id) public payable {
+        console.log("CAlled");
+        if (block.timestamp > listings[_id].auctionEndTime) {
             revert("AUC101: Auction has already ended");
         }
+        console.log(listings[_id].baseValue);
 
-        if (msg.value <= baseValue) {
+        if (msg.value <= listings[_id].baseValue) {
             revert("AUC106: Bid cannot be less than base value");
         }
 
-        if (msg.value <= highestBid) {
+        if (msg.value <= listings[_id].highestBid) {
             revert("AUC102: These already a higher or equal bid");
         }
 
         //Flaw is that all the amount will be stored in here
         if (msg.value != 0) {
-            pendingReturns[msg.sender] += msg.value;
+            pendingReturns[_id][msg.sender] += msg.value;
         }
 
-        highestBidder = msg.sender;
-        highestBid = msg.value;
-        emit HighestBidIncreased(highestBidder, highestBid);
+        listings[_id].highestBidder = msg.sender;
+        listings[_id].highestBid = msg.value;
+        emit HighestBidIncreased(listings[_id].highestBidder, listings[_id].highestBid);
     }
 
-    //can withdraw any time
-    // bug
-    function withdraw() public returns (bool) {
-        if (!ended) {
+    function getlisting(uint256 _id) public view returns (Listing memory) {
+        return listings[_id];
+    }
+
+    function auctionEnd(uint256 _id) public {
+        if (block.timestamp < listings[_id].auctionEndTime) {
+            revert("AUC103: Auction has not ended yet");
+        }
+
+        if (listings[_id].ended) {
+            revert("AUC104: The function has already been called");
+        }
+
+        listings[_id].ended = true;
+        emit AuctionEnded(listings[_id].highestBidder, listings[_id].highestBid);
+        uint256 transferAmount = listings[_id].highestBid;
+        address payable beneficiary = listings[_id].beneficiary;
+
+        if (beneficiary.send(transferAmount)) {
+            emit BeneficiaryPaid(beneficiary, transferAmount);
+        } else {
+            pendingReturns[_id][beneficiary] += transferAmount;
+        }
+    }
+
+    function withdraw(uint256 _id) public returns (bool) {
+        if (!listings[_id].ended) {
             revert("AUC105: Auction haven't ended yet");
         }
-        uint256 amount = pendingReturns[msg.sender];
+        uint256 amount = pendingReturns[_id][msg.sender];
         console.log(amount);
+        uint256 highestBid = listings[_id].highestBid;
+        address highestBidder = listings[_id].highestBidder;
 
         //to prevent the highest bidder from withdrawing bidded money
         if (msg.sender == highestBidder) {
@@ -72,32 +109,13 @@ contract Auction {
         }
 
         if (amount > 0) {
-            pendingReturns[msg.sender] = 0;
+            pendingReturns[_id][msg.sender] = 0;
 
             if (!payable(msg.sender).send(amount)) {
-                pendingReturns[msg.sender] = amount;
+                pendingReturns[_id][msg.sender] = amount;
                 return false;
             }
         }
         return true;
-    }
-
-    function auctionEnd() public {
-        if (block.timestamp < auctionEndTime) {
-            revert("AUC103: Auction has not ended yet");
-        }
-
-        if (ended) {
-            revert("AUC104: The function has already been called");
-        }
-
-        ended = true;
-        emit AuctionEnded(highestBidder, highestBid);
-
-        if (beneficiary.send(highestBid)) {
-            emit BeneficiaryPaid(beneficiary, highestBid);
-        } else {
-            pendingReturns[beneficiary] += highestBid;
-        }
     }
 }
