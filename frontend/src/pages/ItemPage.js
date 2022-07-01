@@ -62,14 +62,16 @@ function Itempage() {
             id={item.id}
           />
         </div>
-        <Form className="col-md-auto" onFinish={handleBid} form={form2}>
-          <Form.Item label="Bid" name="bid">
-            <Input />
-          </Form.Item>
-          <Button type="primary" htmlType="submit">
-            Bid
-          </Button>
-        </Form>
+        <div className="row justify-content-md-center mb-4">
+          <Form className="col-md-auto" onFinish={handleBid} form={form2}>
+            <Form.Item label="Bid" name="bid">
+              <Input />
+            </Form.Item>
+            <Button type="primary" htmlType="submit">
+              Bid
+            </Button>
+          </Form>
+        </div>
         <div className="row justify-content-md-center p-1">
           <div className="col-md-auto">
             <strong>Owner: {item.beneficiary}</strong>
@@ -77,12 +79,6 @@ function Itempage() {
           <br />
         </div>
         <div className="row justify-content-md-center p-1">
-          {/* <div className="col-md-auto">
-            <h2 className="text-center">Signer info</h2>
-            <p>Signer: </p>
-            <p>Signer bid: </p>
-          </div>
-          <br /> */}
           <ul>
             <li>Current HighestBidder: {item.highestBidder}</li>
             <li>Current HighestBid: {Number(item.highestBid)}</li>

@@ -91,9 +91,6 @@ contract Auction {
     }
 
     function withdraw(uint256 _id) public returns (bool) {
-        if (!listings[_id].ended) {
-            revert("AUC105: Auction haven't ended yet");
-        }
         uint256 amount = pendingReturns[_id][msg.sender];
         console.log(amount);
         uint256 highestBid = listings[_id].highestBid;
