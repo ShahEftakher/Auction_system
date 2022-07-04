@@ -19,8 +19,8 @@ const Listings = () => {
   };
 
   const onFinish = async (values) => {
+    console.log(time);
     const remaining = Math.ceil((toMiliseonds(time) - Date.now()) / 1000);
-    console.log(remaining);
     const tx = await auctionInstance.startAuction(
       remaining,
       ethers.utils.parseEther(values.price)

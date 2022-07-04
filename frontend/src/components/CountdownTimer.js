@@ -1,7 +1,6 @@
 import React from 'react';
 import { useCountdown } from '../hooks/useCountdown';
 import ShowCounter from './ShowCounter';
-import ExpiredNotice from './ExpiredNotice';
 
 const CountdownTimer = ({ targetDate, auction, owner, id }) => {
   const [days, hours, minutes, seconds] = useCountdown(targetDate);
@@ -13,9 +12,9 @@ const CountdownTimer = ({ targetDate, auction, owner, id }) => {
   }
   if (days + hours + minutes + seconds === 0) {
     setTimeout(onFinish, 3000);
-    return <ExpiredNotice />;
+    <ShowCounter days={0} hours={0} minutes={0} seconds={0} />;
   } else if (days + hours + minutes + seconds < 0) {
-    return <ExpiredNotice />;
+    return <ShowCounter days={0} hours={0} minutes={0} seconds={0} />;
   } else {
     return (
       <ShowCounter
