@@ -12,7 +12,7 @@ const getBlockchain = () =>
         const signer = provider.getSigner();
         const signerAddress = await provider.getSigner().getAddress();
         const auction = new Contract(Auction.address, Auction.abi, signer);
-        resolve({ provider, auction, signerAddress });
+        resolve({ auction, signerAddress });
       }
     });
   });
