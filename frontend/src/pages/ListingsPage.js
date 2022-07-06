@@ -1,10 +1,10 @@
 /* eslint-disable */
 import { useEffect, useState } from 'react';
 import ItemCard from '../components/ItemCard';
-import getBlockchain from '../ethereum';
 import { Button, Form, Input, DatePicker, Space } from 'antd';
 import { toMiliseonds } from '../utils/toMiliseconds';
 import { ethers } from 'ethers';
+import { getBlockchain } from '../magicEthereum';
 
 const Listings = () => {
   const [signerAddress, setSignerAddress] = useState(undefined);
@@ -12,6 +12,8 @@ const Listings = () => {
   const [items, setItems] = useState([]);
   const [time, setTime] = useState(0);
   const [form1] = Form.useForm();
+  const [processing, setProcessing] = useState(false);
+  const [provider, setProvider] = useState(undefined);
 
   const onChange = (value, dateString) => {
     console.log('Selected Time: ', value);
@@ -20,6 +22,7 @@ const Listings = () => {
 
   const onFinish = async (values) => {
     console.log(time);
+    setProcessing(true);
     const remaining = Math.ceil((toMiliseonds(time) - Date.now()) / 1000);
     const tx = await auctionInstance.startAuction(
       remaining,
@@ -28,26 +31,18 @@ const Listings = () => {
     await tx.wait();
     form1.resetFields();
     const Listings = await auctionInstance.getListings();
-    console.log(Number(Listings[0].baseValue));
     setItems(Listings);
+    setProcessing(false);
   };
 
   useEffect(() => {
-    window.ethereum.on('accountsChanged', () => {
-      setSignerAddress(signerAddress);
-      window.location.reload();
-    });
-
-    window.ethereum.on('chainChanged', () => {
-      setSignerAddress(signerAddress);
-      window.location.reload();
-    });
     const init = async () => {
-      const { signerAddress, auction } = await getBlockchain();
+      const { provider, auction, signerAddress } = await getBlockchain();
+      console.log(signerAddress);
+      setProvider(provider);
       setSignerAddress(signerAddress);
       setAuctionInstance(auction);
       const Listings = await auction.getListings();
-      console.log(Number(Listings[0].baseValue));
       setItems(Listings);
     };
     init();
@@ -71,8 +66,8 @@ const Listings = () => {
             <Form.Item label="Price" name="price">
               <Input />
             </Form.Item>
-            <Button type="primary" htmlType="submit">
-              Start Auction
+            <Button type="primary" htmlType="submit" disabled={processing}>
+              {(processing)?"Processing...":"Start Auction"}
             </Button>
           </Form>
         </div>
