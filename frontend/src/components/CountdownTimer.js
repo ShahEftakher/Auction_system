@@ -6,7 +6,7 @@ const CountdownTimer = ({ targetDate, auction, owner, id }) => {
   const [days, hours, minutes, seconds] = useCountdown(targetDate);
   async function onFinish() {
     console.log(owner);
-    const tx = await auction.auctionEnd(id, { from: owner });
+    const tx = await auction.auctionEnd(id);
     tx.wait();
     console.log('Auction ended!!!');
   }

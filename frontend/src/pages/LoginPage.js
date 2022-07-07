@@ -14,9 +14,7 @@ const LoginPage = () => {
       /* One-liner login 🤯 */
       await magic.auth.loginWithMagicLink({ email });
       /* Redirect to the home page */
-      if (isLoggedIn) {
-        window.location.href = '/listings';
-      }
+      window.location.href = '/listings';
     }
   };
 
@@ -33,20 +31,18 @@ const LoginPage = () => {
   }, []);
 
   return (
-    <div>
-      <div className="container">
-        <h1>Please sign up or login</h1>
-        <form onSubmit={handleLogin}>
-          <input
-            type="email"
-            name="email"
-            required="required"
-            placeholder="Enter your email"
-          />
-          <button type="submit">Send</button>
-        </form>
-      </div>
-    </div>
+    <>
+      <h1>Please sign up or login</h1>
+      <form onSubmit={handleLogin}>
+        <input
+          type="email"
+          name="email"
+          required="required"
+          placeholder="Enter your email"
+        />
+        <button type="submit">Send</button>
+      </form>
+    </>
   );
 };
 export default LoginPage;

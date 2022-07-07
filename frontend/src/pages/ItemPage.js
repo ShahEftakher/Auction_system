@@ -1,10 +1,11 @@
 /* eslint-disable */
 import { useEffect, useState } from 'react';
 import { Button, Form, Input } from 'antd';
-import getBlockchain from '../ethereum';
+import { getBlockchain } from '../magicEthereum';
 import '../style.css';
 import CountdownTimer from '../components/CountdownTimer';
 import { ethers } from 'ethers';
+import Navbar from '../components/Navbar';
 
 function Itempage() {
   const itemId = window.location.pathname.split('/').pop();
@@ -13,6 +14,8 @@ function Itempage() {
   const [signerAddress, setSignerAddress] = useState(undefined);
   const [auctionInstance, setAuction] = useState(undefined);
   const [form2] = Form.useForm();
+  const [baseValue, setBaseValue] = useState(undefined);
+  const [highestBid, setHighestBid] = useState(undefined);
 
   const handleBid = async (value) => {
     console.log(value.bid);
@@ -21,6 +24,7 @@ function Itempage() {
     });
     await tx.wait();
     form2.resetFields();
+    
   };
 
   const withdrawHandler = async () => {
@@ -29,17 +33,9 @@ function Itempage() {
   };
 
   useEffect(() => {
-    window.ethereum.on('accountsChanged', () => {
-      setSignerAddress(signerAddress);
-      window.location.reload();
-    });
-    window.ethereum.on('chainChanged', () => {
-      setSignerAddress(signerAddress);
-      window.location.reload();
-    });
-
     const init = async () => {
       const { signerAddress, auction } = await getBlockchain();
+      console.log(signerAddress);
       setSignerAddress(signerAddress);
       setAuction(auction);
       const item = await auction.getItem(itemId);
@@ -47,50 +43,55 @@ function Itempage() {
       setItem(item);
       const endTime = Number(item.auctionEndTime) * 1000;
       setTimer(endTime);
+      setBaseValue(ethers.utils.formatEther(item.baseValue));
+      setHighestBid(ethers.utils.formatEther(item.highestBid));
     };
     init();
   }, []);
 
   return (
-    <div className="d-flex align-items-center justify-content-center">
-      <div className="container">
-        <div className="row justify-content-md-center p-4">
-          <CountdownTimer
-            targetDate={timer}
-            auction={auctionInstance}
-            signerAddress={item.beneficiary}
-            id={item.id}
-          />
-        </div>
-        <div className="row justify-content-md-center mb-4">
-          <Form className="col-md-auto" onFinish={handleBid} form={form2}>
-            <Form.Item label="Bid" name="bid">
-              <Input />
-            </Form.Item>
-            <Button type="primary" htmlType="submit">
-              Bid
-            </Button>
-          </Form>
-        </div>
-        <div className="row justify-content-md-center p-1">
-          <div className="col-md-auto">
-            <strong>Owner: {item.beneficiary}</strong>
+    <>
+      <Navbar />
+      <div className="d-flex align-items-center justify-content-center">
+        <div className="container">
+          <div className="row justify-content-md-center p-4">
+            <CountdownTimer
+              targetDate={timer}
+              auction={auctionInstance}
+              signerAddress={item.beneficiary}
+              id={item.id}
+            />
           </div>
-          <br />
-        </div>
-        <div className="row justify-content-md-center p-1">
-          <ul>
-            <li>Current HighestBidder: {item.highestBidder}</li>
-            <li>Current HighestBid: {Number(item.highestBid)}</li>
-            <li>Base Value: {Number(item.baseValue)}</li>
-          </ul>
+          <div className="row justify-content-md-center mb-4">
+            <Form className="col-md-auto" onFinish={handleBid} form={form2}>
+              <Form.Item label="Bid" name="bid">
+                <Input />
+              </Form.Item>
+              <Button type="primary" htmlType="submit">
+                Bid
+              </Button>
+            </Form>
+          </div>
+          <div className="row justify-content-md-center p-1">
+            <div className="col-md-auto">
+              <strong>Owner: {item.beneficiary}</strong>
+            </div>
+            <br />
+          </div>
+          <div className="row justify-content-md-center p-1">
+            <ul>
+              <li>Current HighestBidder: {item.highestBidder}</li>
+              <li>Current HighestBid: {highestBid}</li>
+              <li>Base Value: {baseValue}</li>
+            </ul>
 
-          <div>
-            <Button onClick={withdrawHandler}>Withdraw</Button>
+            <div>
+              <Button onClick={withdrawHandler}>Withdraw</Button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

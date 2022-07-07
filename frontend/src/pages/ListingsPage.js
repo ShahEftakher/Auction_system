@@ -5,6 +5,7 @@ import { Button, Form, Input, DatePicker, Space } from 'antd';
 import { toMiliseonds } from '../utils/toMiliseconds';
 import { ethers } from 'ethers';
 import { getBlockchain } from '../magicEthereum';
+import Navbar from '../components/Navbar';
 
 const Listings = () => {
   const [signerAddress, setSignerAddress] = useState(undefined);
@@ -49,7 +50,7 @@ const Listings = () => {
   }, []);
   return (
     <div>
-      <h1>Listings</h1>
+      <Navbar />
       <h3 className="text-center">Create Listing</h3>
       <div className="container">
         <div className="row justify-content-md-center mb-4">
@@ -67,7 +68,7 @@ const Listings = () => {
               <Input />
             </Form.Item>
             <Button type="primary" htmlType="submit" disabled={processing}>
-              {(processing)?"Processing...":"Start Auction"}
+              {processing ? 'Processing...' : 'Start Auction'}
             </Button>
           </Form>
         </div>
