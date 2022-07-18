@@ -38,28 +38,27 @@ contract Auction {
         emit AuctionStarted(listings[_id].auctionEndTime);
     }
 
-    function bid(uint256 _id) public payable {
-        console.log("CAlled");
+    function bid(uint256 _id, uint256 _bid) public {
         if (block.timestamp > listings[_id].auctionEndTime) {
             revert("AUC101: Auction has already ended");
         }
         console.log(listings[_id].baseValue);
 
-        if (msg.value <= listings[_id].baseValue) {
+        if (_bid <= listings[_id].baseValue) {
             revert("AUC106: Bid cannot be less than base value");
         }
 
-        if (msg.value <= listings[_id].highestBid) {
+        if (_bid <= listings[_id].highestBid) {
             revert("AUC102: These already a higher or equal bid");
         }
 
         //Flaw is that all the amount will be stored in here
-        if (msg.value != 0) {
-            pendingReturns[_id][msg.sender] += msg.value;
+        if (_bid != 0) {
+            pendingReturns[_id][msg.sender] += _bid;
         }
 
         listings[_id].highestBidder = msg.sender;
-        listings[_id].highestBid = msg.value;
+        listings[_id].highestBid = _bid;
         emit HighestBidIncreased(
             listings[_id].highestBidder,
             listings[_id].highestBid

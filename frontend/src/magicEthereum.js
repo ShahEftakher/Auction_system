@@ -1,6 +1,7 @@
 import { Contract, ethers } from 'ethers';
 import { getMagic } from './magic';
 import Auction from './Auction.json';
+import ESDToken from './ESDToken.json';
 
 const getBlockchain = () =>
   new Promise((resolve, reject) => {
@@ -12,7 +13,8 @@ const getBlockchain = () =>
         const signer = provider.getSigner();
         const signerAddress = await provider.getSigner().getAddress();
         const auction = new Contract(Auction.address, Auction.abi, signer);
-        resolve({ auction, signerAddress });
+        const token = new Contract(ESDToken.address, ESDToken.abi, signer);
+        resolve({ auction, signerAddress, token });
       }
     });
   });

@@ -16,15 +16,17 @@ function Itempage() {
   const [form2] = Form.useForm();
   const [baseValue, setBaseValue] = useState(undefined);
   const [highestBid, setHighestBid] = useState(undefined);
+  const [tokenInstance, setTokenInstance] = useState(undefined);
 
   const handleBid = async (value) => {
+    const bidInWei = ethers.utils.parseEther(value.bid);
+    console.log(Number(bidInWei));
     console.log(value.bid);
-    const tx = await auctionInstance.bid(item.id, {
-      value: ethers.utils.parseEther(value.bid),
-    });
+    const tx1 = await tokenInstance.approve(auctionInstance.address, value.bid);
+    await tx1.wait();
+    const tx = await auctionInstance.bid(item.id, bidInWei);
     await tx.wait();
     form2.resetFields();
-    
   };
 
   const withdrawHandler = async () => {
@@ -34,11 +36,12 @@ function Itempage() {
 
   useEffect(() => {
     const init = async () => {
-      const { signerAddress, auction } = await getBlockchain();
+      const { signerAddress, auction, token } = await getBlockchain();
       console.log(signerAddress);
       setSignerAddress(signerAddress);
       setAuction(auction);
       const item = await auction.getItem(itemId);
+      setTokenInstance(token);
 
       setItem(item);
       const endTime = Number(item.auctionEndTime) * 1000;
