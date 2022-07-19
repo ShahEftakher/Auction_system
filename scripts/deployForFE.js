@@ -17,16 +17,16 @@ async function main() {
 
   fs.writeFileSync('./frontend/src/Auction.json', JSON.stringify(data));
 
-  await auction.startAuction(100, ethers.utils.parseEther('0.2'));
+  await auction.startAuction(1000, ethers.utils.parseEther('0.2'));
   await auction
     .connect(accounts[1])
-    .startAuction(100, ethers.utils.parseEther('0.5'));
+    .startAuction(1000, ethers.utils.parseEther('0.5'));
   await auction
     .connect(accounts[2])
-    .startAuction(100, ethers.utils.parseEther('0.3'));
+    .startAuction(1000, ethers.utils.parseEther('0.3'));
   await auction
     .connect(accounts[3])
-    .startAuction(100, ethers.utils.parseEther('0.22'));
+    .startAuction(1000, ethers.utils.parseEther('0.22'));
 }
 
 // We recommend this pattern to be able to use async/await everywhere

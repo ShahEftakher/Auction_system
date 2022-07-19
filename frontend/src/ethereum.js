@@ -1,4 +1,5 @@
 import Auction from './Auction.json';
+import Token from './Token.json';
 import { Contract, ethers } from 'ethers';
 
 const getBlockchain = () =>
@@ -11,7 +12,8 @@ const getBlockchain = () =>
         const signerAddress = await signer.getAddress();
         console.log(signerAddress);
         const auction = new Contract(Auction.address, Auction.abi, signer);
-        resolve({ signerAddress, auction });
+        const token = new Contract(Token.address, Token.abi, signer);
+        resolve({ signerAddress, auction, token, provider });
       }
     });
   });

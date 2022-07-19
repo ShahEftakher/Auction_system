@@ -1,12 +1,31 @@
+import { ethers } from 'ethers';
 import React from 'react';
 import { useCountdown } from '../hooks/useCountdown';
 import ShowCounter from './ShowCounter';
+import Auction from '../Auction.json';
 
-const CountdownTimer = ({ targetDate, auction, owner, id }) => {
+const CountdownTimer = ({
+  targetDate,
+  auction,
+  owner,
+  id,
+  provider,
+  tokenAddress,
+}) => {
+  console.log(process.env.REACT_APP_PRIVATE_KEY);
   const [days, hours, minutes, seconds] = useCountdown(targetDate);
   async function onFinish() {
+    const signer = new ethers.Wallet(
+      process.env.REACT_APP_PRIVATE_KEY,
+      provider
+    );
+    const newAuction = new ethers.Contract(
+      Auction.address,
+      Auction.abi,
+      signer
+    );
     console.log(owner);
-    const tx = await auction.auctionEnd(id, { from: owner });
+    const tx = await newAuction.auctionEnd(id, tokenAddress);
     tx.wait();
     console.log('Auction ended!!!');
   }

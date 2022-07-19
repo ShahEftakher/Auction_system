@@ -28,7 +28,6 @@ const Listings = () => {
     await tx.wait();
     form1.resetFields();
     const Listings = await auctionInstance.getListings();
-    console.log(Number(Listings[0].baseValue));
     setItems(Listings);
   };
 

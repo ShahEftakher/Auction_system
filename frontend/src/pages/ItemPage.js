@@ -5,6 +5,7 @@ import getBlockchain from '../ethereum';
 import '../style.css';
 import CountdownTimer from '../components/CountdownTimer';
 import { ethers } from 'ethers';
+import Token from '../Token.json';
 
 function Itempage() {
   const itemId = window.location.pathname.split('/').pop();
@@ -13,12 +14,18 @@ function Itempage() {
   const [signerAddress, setSignerAddress] = useState(undefined);
   const [auctionInstance, setAuction] = useState(undefined);
   const [form2] = Form.useForm();
+  const [tokenAddress, setTokenAddress] = useState(undefined);
+  const [highestBid, setHighestBid] = useState(0);
+  const [baseValue, setBaseValue] = useState(0);
+  const [provider, setProvider] = useState(undefined);
 
   const handleBid = async (value) => {
     console.log(value.bid);
-    const tx = await auctionInstance.bid(item.id, {
-      value: ethers.utils.parseEther(value.bid),
-    });
+    const tx = await auctionInstance.bid(
+      item.id,
+      ethers.utils.parseEther(value.bid),
+      tokenAddress
+    );
     await tx.wait();
     form2.resetFields();
   };
@@ -38,15 +45,19 @@ function Itempage() {
       window.location.reload();
     });
 
+    setTokenAddress(Token.address);
+
     const init = async () => {
-      const { signerAddress, auction } = await getBlockchain();
+      const { signerAddress, auction, provider } = await getBlockchain();
       setSignerAddress(signerAddress);
       setAuction(auction);
       const item = await auction.getItem(itemId);
-
       setItem(item);
+      setBaseValue(ethers.utils.formatEther(item.baseValue.toString()));
+      setHighestBid(ethers.utils.formatEther(item.highestBid.toString()));
       const endTime = Number(item.auctionEndTime) * 1000;
       setTimer(endTime);
+      setProvider(provider);
     };
     init();
   }, []);
@@ -60,6 +71,8 @@ function Itempage() {
             auction={auctionInstance}
             signerAddress={item.beneficiary}
             id={item.id}
+            provider={provider}
+            tokenAddress={tokenAddress}
           />
         </div>
         <div className="row justify-content-md-center mb-4">
@@ -81,8 +94,8 @@ function Itempage() {
         <div className="row justify-content-md-center p-1">
           <ul>
             <li>Current HighestBidder: {item.highestBidder}</li>
-            <li>Current HighestBid: {Number(item.highestBid)}</li>
-            <li>Base Value: {Number(item.baseValue)}</li>
+            <li>Current HighestBid: {highestBid} ETH</li>
+            <li>Base Value: {baseValue} ETH</li>
           </ul>
 
           <div>
