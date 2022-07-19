@@ -6,7 +6,6 @@ import Auction from '../Auction.json';
 
 const CountdownTimer = ({
   targetDate,
-  auction,
   owner,
   id,
   provider,
