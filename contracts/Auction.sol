@@ -15,7 +15,6 @@ contract Auction {
     }
 
     Listing[] public listings;
-    mapping(uint256 => mapping(address => uint256)) public pendingReturns;
 
     event HighestBidIncreased(address bidder, uint256 amount);
     event AuctionEnded(address winner, uint256 amount);
@@ -55,10 +54,6 @@ contract Auction {
 
         if (_amount <= listings[_id].highestBid) {
             revert("AUC103: These already a higher or equal bid");
-        }
-
-        if (_amount != 0) {
-            pendingReturns[_id][msg.sender] += _amount;
         }
 
         uint256 currentAllowance = IToken(_tokenAddr).allowance(

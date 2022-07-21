@@ -11,7 +11,6 @@ const CountdownTimer = ({
   provider,
   tokenAddress,
 }) => {
-  console.log(process.env.REACT_APP_PRIVATE_KEY);
   const [days, hours, minutes, seconds] = useCountdown(targetDate);
   async function onFinish() {
     const signer = new ethers.Wallet(
