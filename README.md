@@ -31,6 +31,8 @@ npx hardhat help
     }
 ```
 - Set auction endtime by adding auction duration with the current block time <code>block.timestamp + _biddingTime</code>
+- Start auction will start the auction and create a auction item and push it to the auctionItems array
+- Start auction will also transfer the nft item ownership to the nft marketplace
 - Use <code>approve</code> function of ERC_20 to bid for an item
 - The bid will approve the auction market contract to spend the bid amount on behalf of the bidder
 - Bid logic:
